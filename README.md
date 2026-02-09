@@ -1,8 +1,3 @@
-
-<p align="center">
-    <img alt="Logo" src="http://dcjones.github.com/mk/mk.svg">
-</p>
-
 Mk is a reboot of the Plan 9 mk command, which itself is [a successor to
 make](http://www.cs.tufts.edu/~nr/cs257/archive/andrew-hume/mk.pdf). This tool
 is for anyone who loves make, but hates all its stupid bullshit.
