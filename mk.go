@@ -388,4 +388,22 @@ func main() {
 
 	g := buildgraph(rs, "")
 	mkNode(g, g.root, dryrun, true)
+
+	// If no recipes were actually executed anywhere and one or more top-level
+	// targets finished as noop, print "mk: '<target>' is up to date". This is
+	// the same behavior as Plan 9 mk.
+	anyDone := false
+	for _, u := range g.nodes {
+		if u.status == nodeStatusDone {
+			anyDone = true
+			break
+		}
+	}
+	if !anyDone {
+		for _, t := range targets {
+			if u, ok := g.nodes[t]; ok && u.status == nodeStatusNop {
+				fmt.Printf("mk: '%s' is up to date\n", t)
+			}
+		}
+	}
 }
