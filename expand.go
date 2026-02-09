@@ -308,9 +308,11 @@ func expandBackQuoted(input string, vars map[string][]string) ([]string, int) {
 	output, _ := subprocess("sh", nil, input[:j], true)
 
 	parts := make([]string, 0)
-	_, tokens := lexWords(output)
+	_, tokens := lex(output)
 	for t := range tokens {
-		parts = append(parts, t.val)
+		if t.typ == tokenWord {
+			parts = append(parts, t.val)
+		}
 	}
 
 	return parts, (j + 1)
