@@ -232,13 +232,19 @@ func mkNode(g *graph, u *node, dryrun bool, required bool) {
 		success, exitcode, input := dorecipe(u.name, u, e, g.rs, dryrun)
 		if !success {
 			finalstatus = nodeStatusFailed
+			delMsg := ""
+			// Delete target if recipe fails
+			if e.r.attributes.delFailed {
+				os.Remove(u.name)
+				delMsg = fmt.Sprintf(", deleting '%s'", u.name)
+			}
 
 			cmdStr := input
 			if idx := strings.IndexRune(cmdStr, '\n'); idx >= 0 {
 				cmdStr = cmdStr[:idx]
 			}
 
-			mkError(fmt.Sprintf("mk: %s : exit status=exit(%d)", cmdStr, exitcode))
+			mkError(fmt.Sprintf("mk: %s : exit status=exit(%d)%s", cmdStr, exitcode, delMsg))
 		}
 		u.updateTimestamp()
 

@@ -110,6 +110,18 @@ func dorecipe(target string, u *node, e *edge, rs *ruleSet, dryrun bool) (bool, 
 		args = e.r.shell[1:]
 	}
 
+	// Continue execution *within* the recipe by removing the '-e' shell flag
+	// so the shell doesn't abort early.
+	if e.r.attributes.nonstop {
+		filteredArgs := []string{}
+		for _, arg := range args {
+			if arg != "-e" {
+				filteredArgs = append(filteredArgs, arg)
+			}
+		}
+		args = filteredArgs
+	}
+
 	// Export variables to the child shell environment exactly like Plan 9 mk
 	env := os.Environ()
 	for k, v := range vars {
