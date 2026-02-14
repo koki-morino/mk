@@ -285,7 +285,7 @@ func mkPrintMessage(msg string) {
 	mkMsgMutex.Unlock()
 }
 
-func mkPrintRecipe(target string, recipe string, quiet bool) {
+func mkPrintRecipe(target string, recipe string, output string, quiet bool) {
 	mkMsgMutex.Lock()
 	if nocolor {
 		fmt.Printf("%s: ", target)
@@ -309,6 +309,12 @@ func mkPrintRecipe(target string, recipe string, quiet bool) {
 	if !nocolor {
 		os.Stdout.WriteString(ansiTermDefault)
 	}
+
+	// Safely print the captured output while we still hold the lock
+	if len(output) > 0 {
+		os.Stdout.WriteString(output)
+	}
+
 	mkMsgMutex.Unlock()
 }
 
