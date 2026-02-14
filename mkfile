@@ -11,10 +11,22 @@ $PROG: $GOFILES
 clean:V:
     rm -rf $PROG
 
-test:V: testpid testshell
+test:V: testpid testshell testfaile
 
 testpid:V:
     echo pid=$pid
 
 testshell:V:
     echo shell=$MKSHELL
+
+testfail:V:
+    false
+    true
+
+testfaild:VD:
+    touch testfaild
+    false
+
+testfaile:VE:
+    false
+    true
