@@ -80,6 +80,8 @@ func dorecipe(target string, u *node, e *edge, dryrun bool) (bool, int, string) 
 	// alltargets
 	// newprereq
 
+	vars["pid"] = []string{fmt.Sprintf("%d", os.Getpid())}
+
 	prereqs := make([]string, 0)
 	for i := range u.prereqs {
 		if u.prereqs[i].r == e.r && u.prereqs[i].v != nil {
