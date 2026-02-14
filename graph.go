@@ -323,11 +323,11 @@ func (g *graph) ambiguous(u *node) {
 		} else {
 			if !le.r.equivRecipe(e.r) {
 				if le.r.ismeta && !e.r.ismeta {
-					mkPrintRecipe(u.name, le.r.recipe, false)
+					mkPrintRecipe(u.name, le.r.recipe, "", false)
 					le.togo = true
 					le = e
 				} else if !le.r.ismeta && e.r.ismeta {
-					mkPrintRecipe(u.name, e.r.recipe, false)
+					mkPrintRecipe(u.name, e.r.recipe, "", false)
 					e.togo = true
 					continue
 				}
