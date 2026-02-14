@@ -63,8 +63,14 @@ func printIndented(out io.Writer, s string, ind int) {
 }
 
 // Execute a recipe.
-func dorecipe(target string, u *node, e *edge, dryrun bool) (bool, int, string) {
+func dorecipe(target string, u *node, e *edge, rs *ruleSet, dryrun bool) (bool, int, string) {
 	vars := make(map[string][]string)
+
+	// Copy all global variables like $MKSHELL and environment variables
+	for k, v := range rs.vars {
+		vars[k] = v
+	}
+
 	vars["target"] = []string{target}
 	if e.r.ismeta {
 		if e.r.attributes.regex {
@@ -92,7 +98,12 @@ func dorecipe(target string, u *node, e *edge, dryrun bool) (bool, int, string) 
 
 	input := expandRecipeSigils(e.r.recipe, vars)
 	sh := "sh"
-	args := []string{}
+	args := []string{"-e"}
+
+	if mkshell, ok := rs.vars["MKSHELL"]; ok && len(mkshell) > 0 {
+		sh = mkshell[0]
+		args = mkshell[1:]
+	}
 
 	if len(e.r.shell) > 0 {
 		sh = e.r.shell[0]
@@ -100,6 +111,15 @@ func dorecipe(target string, u *node, e *edge, dryrun bool) (bool, int, string) 
 	}
 
 	mkPrintRecipe(target, input, e.r.attributes.quiet)
+
+	// Export variables to the child shell environment exactly like Plan 9 mk
+	env := os.Environ()
+	for k, v := range vars {
+		env = append(env, fmt.Sprintf("%s=%s", k, strings.Join(v, " ")))
+	}
+
+	// Explicitly inject MKSHELL=sh so the shell can evaluate $MKSHELL natively
+	env = append(env, fmt.Sprintf("MKSHELL=%s", sh))
 
 	if dryrun {
 		return true, 0, input
@@ -109,29 +129,21 @@ func dorecipe(target string, u *node, e *edge, dryrun bool) (bool, int, string) 
 		sh,
 		args,
 		input,
-		false)
+		false,
+		env)
 
 	return success, exitcode, input
 }
 
-// Execute a subprocess (typically a recipe).
-//
-// Args:
-//   program: Program path or name located in PATH
-//   input: String piped into the program's stdin
-//   capture_out: If true, capture and return the program's stdout rather than echoing it.
-//
-// Returns
-//   (output, success)
-//   output is an empty string of catputer_out is false, or the collected output from the profram is true.
-//
-//   success is true if the exit code was 0 and false otherwise
-//
+// subprocess executes the named program with args, feeding input to stdin. If
+// captureOut is true, it captures and returns the program's stdout. Returns
+// (output, success) where success is true if the process exits with code 0.
 func subprocess(program string,
 	args []string,
 	input string,
-	capture_out bool) (string, bool) {
-	out, succ, _ := subprocessExit(program, args, input, capture_out)
+	captureOut bool,
+	env []string) (string, bool) {
+	out, succ, _ := subprocessExit(program, args, input, captureOut, env)
 	return out, succ
 }
 
@@ -142,7 +154,8 @@ func subprocess(program string,
 func subprocessExit(program string,
 	args []string,
 	input string,
-	capture_out bool) (string, bool, int) {
+	capture_out bool,
+	env []string) (string, bool, int) {
 	program_path, err := exec.LookPath(program)
 	if err != nil {
 		log.Fatal(err)
@@ -156,7 +169,7 @@ func subprocessExit(program string,
 		log.Fatal(err)
 	}
 
-	attr := os.ProcAttr{Files: []*os.File{stdin_pipe_read, os.Stdout, os.Stderr}}
+	attr := os.ProcAttr{Files: []*os.File{stdin_pipe_read, os.Stdout, os.Stderr}, Env: env}
 
 	output := make([]byte, 0)
 	capture_done := make(chan bool)

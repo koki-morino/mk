@@ -229,7 +229,7 @@ func mkNode(g *graph, u *node, dryrun bool, required bool) {
 			reserveSubproc()
 		}
 
-		success, exitcode, input := dorecipe(u.name, u, e, dryrun)
+		success, exitcode, input := dorecipe(u.name, u, e, g.rs, dryrun)
 		if !success {
 			finalstatus = nodeStatusFailed
 
@@ -341,6 +341,17 @@ func main() {
 	}
 
 	rs := parse(string(input), mkfilepath, abspath)
+
+	// Inherit environment variables
+	for _, env := range os.Environ() {
+		pair := strings.SplitN(env, "=", 2)
+		if len(pair) == 2 && pair[0] != "" {
+			if _, exists := rs.vars[pair[0]]; !exists {
+				rs.vars[pair[0]] = strings.Fields(pair[1])
+			}
+		}
+	}
+
 	if quiet {
 		for i := range rs.rules {
 			rs.rules[i].attributes.quiet = true
