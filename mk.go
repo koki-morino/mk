@@ -187,7 +187,9 @@ func mkNode(g *graph, u *node, dryrun bool, required bool) {
 	}
 
 	prereqs_required := required && (e.r.attributes.virtual || !u.exists)
-	mkNodePrereqs(g, u, e, prereqs, dryrun, prereqs_required)
+	if mkNodePrereqs(g, u, e, prereqs, dryrun, prereqs_required) == nodeStatusFailed {
+		finalstatus = nodeStatusFailed
+	}
 
 	uptodate := true
 	if !e.r.attributes.virtual {
@@ -213,8 +215,10 @@ func mkNode(g *graph, u *node, dryrun bool, required bool) {
 	}
 
 	// make another pass on the prereqs, since we know we need them now
-	if !uptodate {
-		mkNodePrereqs(g, u, e, prereqs, dryrun, true)
+	if !uptodate && finalstatus != nodeStatusFailed {
+		if mkNodePrereqs(g, u, e, prereqs, dryrun, true) == nodeStatusFailed {
+			finalstatus = nodeStatusFailed
+		}
 	}
 
 	// execute the recipe, unless the prereqs failed
@@ -225,8 +229,16 @@ func mkNode(g *graph, u *node, dryrun bool, required bool) {
 			reserveSubproc()
 		}
 
-		if !dorecipe(u.name, u, e, dryrun) {
+		success, exitcode, input := dorecipe(u.name, u, e, dryrun)
+		if !success {
 			finalstatus = nodeStatusFailed
+
+			cmdStr := input
+			if idx := strings.IndexRune(cmdStr, '\n'); idx >= 0 {
+				cmdStr = cmdStr[:idx]
+			}
+
+			mkError(fmt.Sprintf("mk: %s : exit status=exit(%d)", cmdStr, exitcode))
 		}
 		u.updateTimestamp()
 
@@ -393,12 +405,20 @@ func main() {
 	// targets finished as noop, print "mk: '<target>' is up to date". This is
 	// the same behavior as Plan 9 mk.
 	anyDone := false
+	anyFailed := false
 	for _, u := range g.nodes {
 		if u.status == nodeStatusDone {
 			anyDone = true
-			break
+		}
+		if u.status == nodeStatusFailed {
+			anyFailed = true
 		}
 	}
+
+	if anyFailed {
+		os.Exit(1)
+	}
+
 	if !anyDone {
 		for _, t := range targets {
 			if u, ok := g.nodes[t]; ok && u.status == nodeStatusNop {
