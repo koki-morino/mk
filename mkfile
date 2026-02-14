@@ -10,3 +10,8 @@ $PROG: $GOFILES
 
 clean:V:
     rm -rf $PROG
+
+test:V: testpid
+
+testpid:V:
+    echo pid=$pid
