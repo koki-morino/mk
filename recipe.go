@@ -63,7 +63,7 @@ func printIndented(out io.Writer, s string, ind int) {
 }
 
 // Execute a recipe.
-func dorecipe(target string, u *node, e *edge, dryrun bool) bool {
+func dorecipe(target string, u *node, e *edge, dryrun bool) (bool, int, string) {
 	vars := make(map[string][]string)
 	vars["target"] = []string{target}
 	if e.r.ismeta {
@@ -100,16 +100,16 @@ func dorecipe(target string, u *node, e *edge, dryrun bool) bool {
 	mkPrintRecipe(target, input, e.r.attributes.quiet)
 
 	if dryrun {
-		return true
+		return true, 0, input
 	}
 
-	_, success := subprocess(
+	_, success, exitcode := subprocessExit(
 		sh,
 		args,
 		input,
 		false)
 
-	return success
+	return success, exitcode, input
 }
 
 // Execute a subprocess (typically a recipe).
@@ -129,6 +129,18 @@ func subprocess(program string,
 	args []string,
 	input string,
 	capture_out bool) (string, bool) {
+	out, succ, _ := subprocessExit(program, args, input, capture_out)
+	return out, succ
+}
+
+// subprocessExit executes the named program with args, feeding input to its
+// stdin. If capture_out is true the program's stdout is captured and returned.
+// It returns (stdout, success, exitCode) where success is true when
+// exitCode == 0
+func subprocessExit(program string,
+	args []string,
+	input string,
+	capture_out bool) (string, bool, int) {
 	program_path, err := exec.LookPath(program)
 	if err != nil {
 		log.Fatal(err)
@@ -204,5 +216,5 @@ func subprocess(program string,
 		<-capture_done
 	}
 
-	return string(output), state.Success()
+	return string(output), state.Success(), state.ExitCode()
 }
