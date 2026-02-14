@@ -11,7 +11,10 @@ $PROG: $GOFILES
 clean:V:
     rm -rf $PROG
 
-test:V: testpid
+test:V: testpid testshell
 
 testpid:V:
     echo pid=$pid
+
+testshell:V:
+    echo shell=$MKSHELL
