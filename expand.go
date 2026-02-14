@@ -3,6 +3,8 @@
 package main
 
 import (
+	"fmt"
+	"os"
 	"regexp"
 	"strings"
 	"unicode/utf8"
@@ -139,11 +141,7 @@ func expandSigil(input string, vars map[string][]string) ([]string, int) {
 	var varname string
 	var namelist_pattern = regexp.MustCompile(`^\s*([^:]+)\s*:\s*([^%]*)%([^=]*)\s*=\s*([^%]*)%([^%]*)\s*`)
 
-	// escaping of "$" with "$$"
-	if c == '$' {
-		return []string{"$"}, 2
-		// match bracketed expansions: ${foo}, or ${foo:a%b=c%d}
-	} else if c == '{' {
+	if c == '{' {
 		j := strings.IndexRune(input[w:], '}')
 		if j < 0 {
 			return []string{"$" + input}, len(input)
@@ -304,8 +302,14 @@ func expandBackQuoted(input string, vars map[string][]string) ([]string, int) {
 		return []string{input}, len(input)
 	}
 
+	// Build environment for backticks
+	env := os.Environ()
+	for k, v := range vars {
+		env = append(env, fmt.Sprintf("%s=%s", k, strings.Join(v, " ")))
+	}
+
 	// TODO: handle errors
-	output, _ := subprocess("sh", nil, input[:j], true)
+	output, _ := subprocess("sh", nil, input[:j], true, env)
 
 	parts := make([]string, 0)
 	_, tokens := lex(output)

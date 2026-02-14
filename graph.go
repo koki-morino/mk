@@ -12,6 +12,7 @@ import (
 type graph struct {
 	root  *node            // the intial target's node
 	nodes map[string]*node // map targets to their nodes
+	rs    *ruleSet         // reference to the global ruleSet
 }
 
 // An edge in the graph.
@@ -109,7 +110,7 @@ func (u *node) newedge(v *node, r *rule) *edge {
 
 // Create a dependency graph for the given target.
 func buildgraph(rs *ruleSet, target string) *graph {
-	g := &graph{nil, make(map[string]*node)}
+	g := &graph{nil, make(map[string]*node), rs}
 
 	// keep track of how many times each rule is visited, to avoid cycles.
 	rulecnt := make([]int, len(rs.rules))
