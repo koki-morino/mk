@@ -359,7 +359,9 @@ func parseRecipe(p *parser, t token) parserStateFun {
 	}
 
 	if t.typ == tokenRecipe {
-		r.recipe = expandRecipeSigils(stripIndentation(t.val, t.col), p.rules.vars)
+		// Store the raw, unexpanded recipe and perform sigil expansion at
+		// recipe execution time so command-line variable overrides take effect.
+		r.recipe = stripIndentation(t.val, t.col)
 	}
 
 	p.rules.add(r)

@@ -370,7 +370,22 @@ func main() {
 		}
 	}
 
-	targets := flag.Args()
+	rawArgs := flag.Args()
+
+	// Treat arguments of the form NAME=VALUE as variable assignments, and the
+	// rest as targets to build.
+	targets := make([]string, 0, len(rawArgs))
+	for _, a := range rawArgs {
+		if i := strings.IndexRune(a, '='); i > 0 {
+			name := a[:i]
+			val := a[i+1:]
+			if isValidVarName(name) {
+				rs.vars[name] = strings.Fields(val)
+				continue
+			}
+		}
+		targets = append(targets, a)
+	}
 
 	// build the first non-meta rule in the makefile, if none are given explicitly
 	if len(targets) == 0 {
