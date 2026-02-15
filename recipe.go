@@ -122,6 +122,8 @@ func dorecipe(target string, u *node, e *edge, rs *ruleSet, dryrun bool) (bool, 
 		args = filteredArgs
 	}
 
+	mkPrintRecipe(target, input, e.r.attributes.quiet)
+
 	// Export variables to the child shell environment exactly like Plan 9 mk
 	env := os.Environ()
 	for k, v := range vars {
@@ -132,19 +134,15 @@ func dorecipe(target string, u *node, e *edge, rs *ruleSet, dryrun bool) (bool, 
 	env = append(env, fmt.Sprintf("MKSHELL=%s", sh))
 
 	if dryrun {
-		mkPrintRecipe(target, input, "", e.r.attributes.quiet)
 		return true, 0, input
 	}
 
-	output, success, exitcode := subprocessExit(
+	_, success, exitcode := subprocessExit(
 		sh,
 		args,
 		input,
-		true,
+		false,
 		env)
-
-	// Print the prompt and the captured output synchronously
-	mkPrintRecipe(target, input, output, e.r.attributes.quiet)
 
 	return success, exitcode, input
 }
@@ -194,8 +192,6 @@ func subprocessExit(program string,
 		}
 
 		attr.Files[1] = stdout_pipe_write
-		// Capture stderr to the same buffer so errors stay synced
-		attr.Files[2] = stdout_pipe_write
 
 		go func() {
 			buf := make([]byte, 1024)
