@@ -7,6 +7,8 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"runtime"
+	"strconv"
 	"strings"
 	"sync"
 )
@@ -329,7 +331,7 @@ func main() {
 	flag.BoolVar(&dryrun, "n", false, "print commands without actually executing")
 	flag.BoolVar(&shallowrebuild, "r", false, "force building of just targets")
 	flag.BoolVar(&rebuildall, "a", false, "force building of all dependencies")
-	flag.IntVar(&subprocsAllowed, "p", 4, "maximum number of jobs to execute in parallel")
+	flag.IntVar(&subprocsAllowed, "p", runtime.NumCPU(), "maximum number of jobs to execute in parallel")
 	flag.BoolVar(&interactive, "i", false, "prompt before executing rules")
 	flag.BoolVar(&quiet, "q", false, "don't print recipes before executing them")
 	flag.Parse()
@@ -380,6 +382,17 @@ func main() {
 		}
 		targets = append(targets, a)
 	}
+
+	// The value used for controlling the number of parallel jobs is determined
+	// from environment variables or command-line arguments (e.g., NPROC=value).
+	// NOTE: the value is explicitly deleted from `rs.vars` to prevent its
+	// propagation into recipes, aligning with Plan 9 mk's behavior.
+	if nproc, ok := rs.vars["NPROC"]; ok && len(nproc) > 0 {
+		if p, err := strconv.Atoi(nproc[0]); err == nil {
+			subprocsAllowed = p
+		}
+	}
+	delete(rs.vars, "NPROC")
 
 	// build the first non-meta rule in the makefile, if none are given explicitly
 	if len(targets) == 0 {

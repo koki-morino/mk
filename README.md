@@ -77,7 +77,8 @@ improvements.
   * `-n` Dry run, print commands without actually executing.
   * `-r` Force building of the immediate targets.
   * `-a` Force building the targets and of all their dependencies.
-  * `-p` Maximum number of jobs to execute in parallel (default: 8)
+  * `-p` Maximum number of jobs to execute in parallel (default: the number of
+    CPUs on the current machine)
   * `-i` Show rules that will execute and prompt before executing.
 
 
