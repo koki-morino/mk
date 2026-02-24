@@ -125,7 +125,7 @@ func expandDoubleQuoted(input string, vars map[string][]string, expandBackticks 
 	return input, len(input)
 }
 
-// Expand a single quoted string starting after a '\''
+// Expand a single quoted string starting after a '\'
 func expandSingleQuoted(input string) (string, int) {
 	j := strings.Index(input, "'")
 	if j < 0 {
