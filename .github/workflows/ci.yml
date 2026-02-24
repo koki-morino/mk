@@ -38,3 +38,26 @@ jobs:
             echo "$unformatted"
             exit 1
           fi
+  compat:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        version: ["1.12", "1.13", "1.14", "1.15", "1.16", "1.17", "1.18",
+                  "1.19", "1.20", "1.21", "1.22", "1.23", "1.24", "1.25"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: ${{ matrix.version }}
+      - name: Install build tool
+        run: |
+            if go version | grep -qE 'go1\.(1[2-5])'; then
+              export GOPATH="$HOME/go"
+              export PATH="$GOPATH/bin:$PATH"
+              go get -v github.com/koki-morino/mk
+            else
+              go install -v github.com/koki-morino/mk@latest
+            fi
+      - name: Build executable
+        run: mk GOOS=${{ matrix.goos }} GOARCH=${{ matrix.goarch }}
