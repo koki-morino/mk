@@ -1,5 +1,7 @@
 PROG=mk
 GO=go
+GOCOMPAT=1.12
+GOPATH=`go env GOPATH`
 GOFILES=`ls *.go`
 GOOS=
 GOARCH=
@@ -11,6 +13,14 @@ $PROG:V: $GOFILES
 
 clean:V:
     rm -rf $PROG
+
+compat-install:V: $HOME/sdk/go$GOCOMPAT
+
+$HOME/sdk/go$GOCOMPAT: $GOPATH/bin/go$GOCOMPAT
+    go$GOCOMPAT download
+
+$GOPATH/bin/go$GOCOMPAT:
+    go install -v golang.org/dl/go$GOCOMPAT@latest
 
 test:V: testpid testshell testfaile
 

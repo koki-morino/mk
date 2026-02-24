@@ -348,9 +348,10 @@ func main() {
 		mkError("unable to find mkfile's absolute path")
 	}
 
-	rs := parse(string(input), mkfilepath, abspath)
-
-	// Inherit environment variables
+	// Create an empty ruleSet and populate it with the current environment
+	// before parsing. This ensures parse-time expansions (like backticks and
+	// $HOME) see environment variables the same way they do at runtime.
+	rs := &ruleSet{make(map[string][]string), make([]rule, 0), make(map[string][]int)}
 	for _, env := range os.Environ() {
 		pair := strings.SplitN(env, "=", 2)
 		if len(pair) == 2 && pair[0] != "" {
@@ -359,6 +360,10 @@ func main() {
 			}
 		}
 	}
+
+	// Parse into the prepopulated rule set so parse-time expansions have access
+	// to the environment we just populated.
+	parseInto(string(input), mkfilepath, rs, abspath)
 
 	if quiet {
 		for i := range rs.rules {
