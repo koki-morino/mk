@@ -11,6 +11,9 @@ all:V: $PROG
 $PROG:V: $GOFILES
     CGO_ENABLED=0 GOOS=$GOOS GOARCH=$GOARCH $GO build -o $target $prereq
 
+fmt:V:
+    $GO fmt $GOFILES
+
 clean:V:
     rm -rf $PROG
 

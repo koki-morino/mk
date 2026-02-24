@@ -94,7 +94,6 @@ const (
 )
 
 // Build a node's prereqs. Block until completed.
-//
 func mkNodePrereqs(g *graph, u *node, e *edge, prereqs []*node, dryrun bool,
 	required bool) nodeStatus {
 	prereqstat := make(chan nodeStatus)
@@ -132,11 +131,11 @@ func mkNodePrereqs(g *graph, u *node, e *edge, prereqs []*node, dryrun bool,
 // concurrently.
 //
 // Args:
-//  g: Graph in which the node lives.
-//  u: Node to (possibly) build.
-//  dryrun: Don't actually build anything, just pretend.
-//  required: Avoid building this node, unless its prereqs are out of date.
 //
+//	g: Graph in which the node lives.
+//	u: Node to (possibly) build.
+//	dryrun: Don't actually build anything, just pretend.
+//	required: Avoid building this node, unless its prereqs are out of date.
 func mkNode(g *graph, u *node, dryrun bool, required bool) {
 	// try to claim on this node
 	u.mutex.Lock()
