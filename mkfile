@@ -1,12 +1,13 @@
 PROG=mk
+GO=go
 GOFILES=`ls *.go`
 GOOS=
 GOARCH=
 
 all:V: $PROG
 
-$PROG: $GOFILES
-    CGO_ENABLED=0 GOOS=$GOOS GOARCH=$GOARCH go build -o $target $prereq
+$PROG:V: $GOFILES
+    CGO_ENABLED=0 GOOS=$GOOS GOARCH=$GOARCH $GO build -o $target $prereq
 
 clean:V:
     rm -rf $PROG
