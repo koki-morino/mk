@@ -15,7 +15,7 @@ jobs:
         with:
           go-version: "stable"
       - name: Install build tool
-        run: go install -v github.com/koki-morino/mk@latest
+        run: GOPROXY=direct go install -v github.com/koki-morino/mk@latest
       - name: Build executable
         run: mk GOOS=${{ matrix.goos }} GOARCH=${{ matrix.goarch }}
       - name: Upload executable
@@ -57,7 +57,7 @@ jobs:
               export PATH="$GOPATH/bin:$PATH"
               go get -v github.com/koki-morino/mk
             else
-              go install -v github.com/koki-morino/mk@latest
+              GOPROXY=direct go install -v github.com/koki-morino/mk@latest
             fi
       - name: Build executable
         run: mk GOOS=${{ matrix.goos }} GOARCH=${{ matrix.goarch }}
