@@ -248,6 +248,11 @@ func lexTopLevel(l *lexer) lexerStateFun {
 			l.next()
 			l.next()
 			l.indented = false
+		} else if l.peek() == '\\' && l.peekN(1) == '\r' && l.peekN(2) == '\n' {
+			l.next()
+			l.next()
+			l.next()
+			l.indented = false
 		} else {
 			break
 		}
@@ -371,6 +376,10 @@ func lexBareWord(l *lexer) lexerStateFun {
 			}
 			l.skip()
 			l.skip()
+			if c1 == '\r' && l.peek() == '\n' {
+				l.skip()
+			}
+			l.indented = false
 			return lexTopLevel
 		} else {
 			l.next()
