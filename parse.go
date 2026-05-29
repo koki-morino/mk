@@ -51,15 +51,6 @@ func (p *parser) clear() {
 // state function, or nil if there was a parse error.
 type parserStateFun func(*parser, token) parserStateFun
 
-// Parse a mkfile, returning a new ruleSet.
-func parse(input string, name string, path string) *ruleSet {
-	rules := &ruleSet{make(map[string][]string),
-		make([]rule, 0),
-		make(map[string][]int)}
-	parseInto(input, name, rules, path)
-	return rules
-}
-
 // Parse a mkfile inserting rules and variables into a given ruleSet.
 func parseInto(input string, name string, rules *ruleSet, path string) {
 	l, tokens := lex(input)
