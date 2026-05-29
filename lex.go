@@ -223,12 +223,6 @@ func lex(input string) (*lexer, chan token) {
 	return l, l.output
 }
 
-func lexWords(input string) (*lexer, chan token) {
-	l := &lexer{input: input, output: make(chan token), line: 1, col: 0, indented: true, barewords: true}
-	go l.run()
-	return l, l.output
-}
-
 func (l *lexer) run() {
 	for state := lexTopLevel; state != nil; {
 		state = state(l)
