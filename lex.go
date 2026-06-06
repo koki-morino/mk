@@ -205,7 +205,9 @@ func (l *lexer) skipRun(valid string) int {
 	return l.pos - prevpos
 }
 
-// Skip until something from the given string is encountered.
+// skipUntil skips characters until a character from the invalid string is
+// encountered, or the end of the file is reached. It advances the lexer
+// position.
 func (l *lexer) skipUntil(invalid string) {
 	for l.pos < len(l.input) && strings.IndexRune(invalid, l.peek()) < 0 {
 		l.skip()
@@ -299,7 +301,15 @@ func lexAssign(l *lexer) lexerStateFun {
 
 func lexComment(l *lexer) lexerStateFun {
 	l.skip() // '#'
+	startPos := l.pos
 	l.skipUntil("\n")
+	commentText := l.input[startPos:l.pos]
+	commentText = strings.TrimRight(commentText, "\r")
+	if strings.HasSuffix(commentText, "\\") {
+		// Allow continuation of line with backslash in comment.
+		l.skip() // consume '\n'
+		l.indented = false
+	}
 	return lexTopLevel
 }
 
