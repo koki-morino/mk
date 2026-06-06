@@ -351,7 +351,7 @@ func (g *graph) ambiguous(u *node) {
 // Print a trace of rules, k
 func (g *graph) trace(name string, e *edge) {
 	fmt.Fprintf(os.Stderr, "\t%s", name)
-	for true {
+	for {
 		prereqname := ""
 		if e.v != nil {
 			prereqname = e.v.name
