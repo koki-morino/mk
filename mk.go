@@ -272,24 +272,7 @@ func mkPrintError(msg string) {
 	if !nocolor {
 		os.Stderr.WriteString(ansiTermDefault)
 	}
-}
 
-func mkPrintSuccess(msg string) {
-	if nocolor {
-		fmt.Println(msg)
-	} else {
-		fmt.Printf("%s%s%s\n", ansiTermGreen, msg, ansiTermDefault)
-	}
-}
-
-func mkPrintMessage(msg string) {
-	mkMsgMutex.Lock()
-	if nocolor {
-		fmt.Println(msg)
-	} else {
-		fmt.Printf("%s%s%s\n", ansiTermBlue, msg, ansiTermDefault)
-	}
-	mkMsgMutex.Unlock()
 }
 
 func mkPrintRecipe(target string, recipe string, quiet bool) {
