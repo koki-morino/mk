@@ -60,7 +60,7 @@ func expand(input string, vars map[string][]string, expandBackticks bool) []stri
 
 		case '$':
 			var outparts []string
-			outparts, off = expandSigil(input[i:], vars)
+			outparts, off = expandSigil(input[i:], vars, false)
 			if len(outparts) > 0 {
 				firstpart := expanded + outparts[0]
 				if len(outparts) > 1 {
@@ -135,7 +135,7 @@ func expandSingleQuoted(input string) (string, int) {
 }
 
 // Expand something starting with at '$'.
-func expandSigil(input string, vars map[string][]string) ([]string, int) {
+func expandSigil(input string, vars map[string][]string, inRecipe bool) ([]string, int) {
 	c, w := utf8.DecodeRuneInString(input)
 	var offset int
 	var varname string
@@ -157,6 +157,9 @@ func expandSigil(input string, vars map[string][]string) ([]string, int) {
 			a, b, c, d := mat[2], mat[3], mat[4], mat[5]
 			values, ok := vars[varname]
 			if !ok {
+				if inRecipe {
+					return []string{"$" + input[:offset]}, offset
+				}
 				return []string{}, offset
 			}
 
@@ -190,7 +193,10 @@ func expandSigil(input string, vars map[string][]string) ([]string, int) {
 			varname = input[i:j]
 			offset = j
 		} else {
-			return []string{"$" + input}, len(input)
+			if len(input) > 0 {
+				return []string{"$" + input[:1]}, 1
+			}
+			return []string{"$"}, 0
 		}
 	}
 
@@ -199,38 +205,17 @@ func expandSigil(input string, vars map[string][]string) ([]string, int) {
 		if ok {
 			return varvals, offset
 		} else {
-			return []string{"$" + input[:offset]}, offset
+			if inRecipe {
+				return []string{"$" + input[:offset]}, offset
+			}
+			return []string{}, offset
 		}
 	}
 
-	return []string{"$" + input}, len(input)
-}
-
-// Find and expand all sigils.
-func expandSigils(input string, vars map[string][]string) []string {
-	parts := make([]string, 0)
-	expanded := ""
-	for i := 0; i < len(input); {
-		j := strings.IndexRune(input[i:], '$')
-		if j < 0 {
-			expanded += input[i:]
-			break
-		}
-
-		ex, k := expandSigil(input[j+1:], vars)
-		if len(ex) > 0 {
-			ex[0] = expanded + ex[0]
-			expanded = ex[len(ex)-1]
-			parts = append(parts, ex[:len(ex)-1]...)
-		}
-		i = k
+	if len(input) > 0 {
+		return []string{"$" + input[:1]}, 1
 	}
-
-	if len(expanded) > 0 {
-		parts = append(parts, expanded)
-	}
-
-	return parts
+	return []string{"$"}, 0
 }
 
 // Find and expand all sigils in a recipe, producing a flat string.
@@ -248,7 +233,7 @@ func expandRecipeSigils(input string, vars map[string][]string) string {
 		c, w := utf8.DecodeRuneInString(input[i:])
 		if c == '$' {
 			i += w
-			ex, k := expandSigil(input[i:], vars)
+			ex, k := expandSigil(input[i:], vars, true)
 			expanded += strings.Join(ex, " ")
 			i += k
 		} else if c == '\\' {
