@@ -17,7 +17,7 @@ jobs:
       - name: Install build tool
         run: GOPROXY=direct go install -v github.com/koki-morino/mk@latest
       - name: Build executable
-        run: mk GOOS=${{ matrix.goos }} GOARCH=${{ matrix.goarch }}
+        run: mk GC=go GOOS=${{ matrix.goos }} GOARCH=${{ matrix.goarch }}
       - name: Upload executable
         uses: actions/upload-artifact@v4
         with:
@@ -60,4 +60,4 @@ jobs:
               GOPROXY=direct go install -v github.com/koki-morino/mk@latest
             fi
       - name: Build executable
-        run: mk GOOS=${{ matrix.goos }} GOARCH=${{ matrix.goarch }}
+        run: mk GC=go GOOS=${{ matrix.goos }} GOARCH=${{ matrix.goarch }}
