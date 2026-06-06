@@ -13,9 +13,6 @@ import (
 	"sync"
 )
 
-// True if messages should be printed without fancy colors.
-var nocolor bool = false
-
 // True if we are ignoring timestamps and rebuilding everything.
 var rebuildall bool = false
 
@@ -79,19 +76,6 @@ func finishExclusiveSubproc() {
 	subprocsRunningCond.L.Unlock()
 	exclusiveSubproc.Unlock()
 }
-
-// Ansi color codes.
-const (
-	ansiTermDefault   = "\033[0m"
-	ansiTermBlack     = "\033[30m"
-	ansiTermRed       = "\033[31m"
-	ansiTermGreen     = "\033[32m"
-	ansiTermYellow    = "\033[33m"
-	ansiTermBlue      = "\033[34m"
-	ansiTermMagenta   = "\033[35m"
-	ansiTermBright    = "\033[1m"
-	ansiTermUnderline = "\033[4m"
-)
 
 // Build a node's prereqs. Block until completed.
 func mkNodePrereqs(g *graph, u *node, e *edge, prereqs []*node, dryrun bool,
@@ -265,39 +249,20 @@ func mkError(msg string) {
 }
 
 func mkPrintError(msg string) {
-	if !nocolor {
-		os.Stderr.WriteString(ansiTermRed)
-	}
 	fmt.Fprintf(os.Stderr, "%s\n", msg)
-	if !nocolor {
-		os.Stderr.WriteString(ansiTermDefault)
-	}
 
 }
 
 func mkPrintRecipe(target string, recipe string, quiet bool) {
 	mkMsgMutex.Lock()
-	if nocolor {
-		fmt.Printf("%s: ", target)
-	} else {
-		fmt.Printf("%s%s%s → %s",
-			ansiTermBlue+ansiTermBright+ansiTermUnderline, target,
-			ansiTermDefault, ansiTermBlue)
-	}
+	fmt.Printf("%s: ", target)
 	if quiet {
-		if nocolor {
-			fmt.Println("...")
-		} else {
-			fmt.Println("…")
-		}
+		fmt.Println("...")
 	} else {
 		printIndented(os.Stdout, recipe, len(target)+3)
 		if len(recipe) == 0 {
 			os.Stdout.WriteString("\n")
 		}
-	}
-	if !nocolor {
-		os.Stdout.WriteString(ansiTermDefault)
 	}
 	mkMsgMutex.Unlock()
 }
