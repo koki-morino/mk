@@ -38,6 +38,17 @@ jobs:
             echo "$unformatted"
             exit 1
           fi
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.12"
+      - name: Install build tool
+        run: go get -v github.com/koki-morino/mk
+      - name: Run tests
+        run: mk test GC=go
   compat:
     runs-on: ubuntu-latest
     strategy:
