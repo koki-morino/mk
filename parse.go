@@ -146,6 +146,7 @@ func parseRedirInclude(p *parser, t token) parserStateFun {
 		for i := range p.tokenbuf {
 			filename += p.tokenbuf[i].val
 		}
+		filename = strings.Join(expand(filename, p.rules.vars, false), " ")
 		file, err := os.Open(filename)
 		if err != nil {
 			// basicErrorAtToken eventually calls os.Exit(1)
