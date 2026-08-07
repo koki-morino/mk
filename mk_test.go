@@ -10,15 +10,26 @@ import (
 	"testing"
 )
 
-// mkBinary is the path to the mk binary used during tests.
-const mkBinary = "mk"
+// mk is the path to the mk binary used during tests.
+var mk = "mk"
 
 // TestMain checks if the mk binary exists
 func TestMain(m *testing.M) {
-	if _, err := os.Stat(mkBinary); os.IsNotExist(err) {
-		fmt.Fprintf(os.Stderr, "mk binary not found: %s\n", mkBinary)
+	if env := os.Getenv("MKBIN"); env != "" {
+		mk = env
+	} else if _, err := os.Stat("./mk"); err != nil {
+		fmt.Fprintf(os.Stderr, "./mk :%v\n", err)
+		os.Exit(1)
+	} else {
+		mk = "./mk"
+	}
+
+	path, err := exec.LookPath(mk)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "%s :%v\n", mk, err)
 		os.Exit(1)
 	}
+	mk = path
 
 	os.Exit(m.Run())
 }
@@ -34,7 +45,7 @@ func runMk(t *testing.T, mkfile string) (stdout, stderr string, exitCode int) {
 		t.Fatal(err)
 	}
 
-	cmd := exec.Command(mkBinary, "-f", mkfile)
+	cmd := exec.Command(mk, "-f", mkfile)
 	cmd.Dir = repoRoot
 
 	var outBuf, errBuf strings.Builder
